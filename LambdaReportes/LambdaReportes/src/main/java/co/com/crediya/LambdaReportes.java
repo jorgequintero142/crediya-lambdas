@@ -1,20 +1,21 @@
 package co.com.crediya;
 
-import co.com.crediya.endeudamiento.ProcesadorSolicitud;
+
+import co.com.crediya.sqs.PublicadorSQS;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 
-public class LambdaEndeudamiento implements RequestHandler<SQSEvent, Void> {
+public class LambdaReportes implements RequestHandler<SQSEvent, Void> {
 
     @Override
     public Void handleRequest(SQSEvent sqsEvent, Context context) {
-        context.getLogger().log("invocando lambda endeudamiento.....>>");
-        ProcesadorSolicitud procesadorSolicitud = new ProcesadorSolicitud();
+        context.getLogger().log("invocando lamda reportes..");
+        PublicadorSQS publicadorSQS =  new PublicadorSQS();
         for (SQSMessage msg : sqsEvent.getRecords()) {
-            context.getLogger().log("leyendo mensaje endeudamiento.." + msg.getBody());
-            procesadorSolicitud.procesarSolicitud(msg.getBody());
+            context.getLogger().log("leyendo mensaje reportes.." + msg.getBody());
+            publicadorSQS.enviarMensaje(msg.getBody());
         }
         return null;
     }

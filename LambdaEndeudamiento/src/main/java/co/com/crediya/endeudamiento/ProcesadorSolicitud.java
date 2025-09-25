@@ -13,6 +13,7 @@ public class ProcesadorSolicitud {
     private final PublicadorSQS publicadorMensaje;
     private final PublicadorSES publicadorSES;
     private static final String EVENTO_CAMBIO_ESTADO = "cambioEstado";
+    private static final String EVENTO_REPORTAR_APROBACION= "reportarAprobacion";
     private static final String ASUNTO = "Aprobación credito crediya!!";
     private static final String ESTADO_APROBAR = "Aprobada";
 
@@ -50,12 +51,25 @@ public class ProcesadorSolicitud {
 
         if (ESTADO_APROBAR.equals(desicion.getEstado())) {
             logger.debug("aprobando  decision OK");
-            String planPagos = generarPlanillaPlanPagos(capacidadEndeutamiento, desicion);
-            logger.debug("enviando email hacia {}", capacidadEndeutamiento.getEmail());
-            publicadorSES.sendEmail(ASUNTO, capacidadEndeutamiento.getEmail(), planPagos);
+            notificarPlanPagos(capacidadEndeutamiento, desicion);
+            reportarAprobacion(capacidadEndeutamiento);
         } else {
             logger.debug("No es necesario enviar email");
         }
+    }
+
+    private void notificarPlanPagos( CapacidadEndeudamientoDto capacidadEndeutamiento,DesicionEnum desicion) {
+
+            logger.debug("notificarPlanPagos");
+            String planPagos = generarPlanillaPlanPagos(capacidadEndeutamiento, desicion);
+            logger.debug("enviando email hacia {}", capacidadEndeutamiento.getEmail());
+            publicadorSES.sendEmail(ASUNTO, capacidadEndeutamiento.getEmail(), planPagos);
+    }
+
+    private void reportarAprobacion(CapacidadEndeudamientoDto capacidadEndeutamiento) {
+        logger.debug("reportarAprobacion solicitud");
+        String messageBody = String.format("reporte->%s,%s", 1, capacidadEndeutamiento.getMonto());
+        publicadorMensaje.enviarMensaje(messageBody,EVENTO_REPORTAR_APROBACION);
     }
 
     private String generarPlanillaPlanPagos(CapacidadEndeudamientoDto capacidadEndeutamiento, DesicionEnum desicion) {
