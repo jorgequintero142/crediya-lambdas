@@ -3,6 +3,7 @@ package co.com.crediya.endeudamiento;
 import co.com.crediya.aprobacion.Amortizacion;
 import co.com.crediya.dto.CapacidadEndeudamientoDto;
 import co.com.crediya.ses.PublicadorSES;
+import co.com.crediya.sqs.MensajeSQS;
 import co.com.crediya.sqs.PublicadorSQS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +13,7 @@ public class ProcesadorSolicitud {
     private static final Logger logger = LoggerFactory.getLogger(ProcesadorSolicitud.class);
     private final PublicadorSQS publicadorMensaje;
     private final PublicadorSES publicadorSES;
-    private static final String EVENTO_CAMBIO_ESTADO = "cambioEstado";
-    private static final String EVENTO_REPORTAR_APROBACION= "reportarAprobacion";
+
     private static final String ASUNTO = "Aprobación credito crediya!!";
     private static final String ESTADO_APROBAR = "Aprobada";
 
@@ -43,7 +43,7 @@ public class ProcesadorSolicitud {
     private void notificarCambioEstado(DesicionEnum desicion, int idSolicitud) {
         logger.debug("Notificar CambioEstado");
         String messageBody = String.format("%d,%d", idSolicitud, desicion.getCodigo());
-        publicadorMensaje.enviarMensaje(messageBody, EVENTO_CAMBIO_ESTADO);
+        publicadorMensaje.enviarMensaje(messageBody, MensajeSQS.EVENTO_CAMBIO_ESTADO);
     }
 
     private void notificarDesicion(CapacidadEndeudamientoDto capacidadEndeutamiento, DesicionEnum desicion) {
@@ -68,8 +68,8 @@ public class ProcesadorSolicitud {
 
     private void reportarAprobacion(CapacidadEndeudamientoDto capacidadEndeutamiento) {
         logger.debug("reportarAprobacion solicitud");
-        String messageBody = String.format("reporte->%s,%s", 1, capacidadEndeutamiento.getMonto());
-        publicadorMensaje.enviarMensaje(messageBody,EVENTO_REPORTAR_APROBACION);
+        String messageBody = String.format("%s,%s", 1, capacidadEndeutamiento.getMonto());
+        publicadorMensaje.enviarMensaje(messageBody,MensajeSQS.EVENTO_REPORTAR_APROBACION);
     }
 
     private String generarPlanillaPlanPagos(CapacidadEndeudamientoDto capacidadEndeutamiento, DesicionEnum desicion) {

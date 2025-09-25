@@ -1,19 +1,26 @@
 package co.com.crediya.sqs;
 
-import co.com.crediya.endeudamiento.DesicionEnum;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.util.Map;
 
 public class MensajeSQS {
-    private final String queueUrl = System.getenv("QUEUE_URL");
 
+    public static final String EVENTO_CAMBIO_ESTADO = "cambioEstado";
+    public static final String EVENTO_REPORTAR_APROBACION= "reportarAprobacion";
+    private final String queueUrlEstado = System.getenv("QUEUE_URL");
+    private final String queueUrlReporte = System.getenv("QUEUE_URL_REPORTE");
     public SendMessageRequest generarMensaje(String mensaje, String evento) {
-        System.out.println("generando mensaje a--> "+queueUrl);
 
+
+        String queueUrlElegida = EVENTO_REPORTAR_APROBACION.equals(evento)
+                ? queueUrlReporte
+                : queueUrlEstado;
+
+        System.out.println("generando mensaje a--> "+queueUrlElegida);
         return SendMessageRequest.builder()
-                .queueUrl(queueUrl)
+                .queueUrl(queueUrlElegida)
                 .messageAttributes(generarAtributos(evento))
                 .messageBody(mensaje)
                 .build();
